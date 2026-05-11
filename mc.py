@@ -1,12 +1,10 @@
 import os
-import time
-import asyncio
 import threading
 from flask import Flask
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-BOT_TOKEN = "YOUR_BOT_TOKEN"
+BOT_TOKEN = "8577565701:AAExAi7fzDcth664HhRq4X4PNNloYuZm6HM"
 
 # ── Flask ──────────────────────────────────
 web = Flask(__name__)
@@ -25,26 +23,9 @@ threading.Thread(target=run_web, daemon=True).start()
 async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🔴 Server is offline.")
 
-# ── Retry loop ─────────────────────────────
-async def run_bot():
-    app = Application.builder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("ping", ping))
-    await app.initialize()
-    await app.start()
-    await app.updater.start_polling(drop_pending_updates=True)
-    print("Fallback bot connected.")
+# ── Main ───────────────────────────────────
+app = Application.builder().token(BOT_TOKEN).build()
+app.add_handler(CommandHandler("ping", ping))
 
-    # Keep running until an exception kills the polling
-    while True:
-        await asyncio.sleep(1)
-
-    await app.updater.stop()
-    await app.stop()
-    await app.shutdown()
-
-while True:
-    try:
-        asyncio.run(run_bot())  # fresh event loop every attempt
-    except Exception as e:
-        print(f"Main bot probably active ({type(e).__name__}: {e}), retrying in 5s...")
-        time.sleep(5)
+print("Fallback bot connected.")
+app.run_polling(drop_pending_updates=True)  # removed close_loop=False
